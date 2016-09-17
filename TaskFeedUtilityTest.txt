@@ -1,0 +1,36 @@
+@isTest
+public class TaskFeedUtilityTest {
+
+    @testSetup
+    private static void setup() {
+        Account objAcct = new Account(Name = 'Test Account');
+        insert objAcct;
+
+        User objUser = [SELECT Id FROM User WHERE Id = :TaskFeedDispatcher.createdById LIMIT 1];
+        System.runAs(objUser) {
+
+            List<Task> lstTask = new List<Task>();
+            for (Integer i = 0; i < 25; i++) {
+                Task objTask = new Task(
+                    WhatId = objAcct.Id,
+                    Subject = 'Test Subject',
+                    Priority = 'Normal',
+                    Status = 'In Progress'
+                );
+                lstTask.add(objTask);
+            }
+
+            insert lstTask;
+        }
+    }
+
+    @isTest
+    private static void test_queryTaskFeedRecordsByCreatedId() {
+        Test.startTest();
+            List<TaskFeed> lstTf = TaskFeedUtility.queryTaskFeedRecordsByCreatedId(TaskFeedDispatcher.createdById);
+        Test.stopTest();
+
+        System.assertEquals(25, lstTf.size());
+    }
+
+}
